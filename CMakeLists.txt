@@ -3,15 +3,26 @@ cmake_minimum_required(VERSION 3.13)
 include(pico-sdk/pico_sdk_init.cmake)
 
 project(macropad C CXX ASM)
+set(CMAKE_C_STANDARD 11)
 
 pico_sdk_init()
 
 add_executable(macropad
 	src/main.c
+    src/keys.c
+    src/keymap.c
+    src/usb_hid.c
+    src/usb_descriptors.c
+
 )
 
 target_link_libraries(macropad
 	pico_stdlib
+)
+target_include_directories(macropad
+    PRIVATE
+    config/
+    src/
 )
 
 pico_add_extra_outputs(macropad)
