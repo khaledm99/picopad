@@ -23,6 +23,7 @@ target_include_directories(macropad
     PRIVATE
     config/
     src/
+    ${CMAKE_SOURCE_DIR}/pico-sdk/lib/tinyusb/src/
 )
 
 pico_add_extra_outputs(macropad)
