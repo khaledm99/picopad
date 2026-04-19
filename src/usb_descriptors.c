@@ -26,40 +26,66 @@ tusb_desc_device_t const desc_device =
     .bNumConfigurations = 0x01
 };
 
-tusb_desc_configuration_t const desc_config =
+typedef struct __attribute__((packed)){
+    tusb_desc_configuration_t   config      ;
+    tusb_desc_interface_t       interface   ;
+    tusb_hid_descriptor_hid_t   hid         ;
+    tusb_desc_endpoint_t        endpoint    ;
+
+} packed_descriptors_t;
+
+// HID Report Descriptor Macro as used in the TinyUSB examples.
+// Chose to use this macro rather than spend the time learning the
+// intricacies of building a report descriptor, which is out of
+// the scope of this project
+uint8_t const desc_hid_keyboard_report[] =
 {
-    .bLength            = sizeof(tusb_desc_configuration_t),
-    .bDescriptorType    = TUSB_DESC_CONFIGURATION,
-    .wTotalLength       = 0,    // I don't know how to compute this yet
-    .bNumInterfaces     = 0x01,
-    .bConfigurationValue = 0x01,
-    .iConfiguration     = 0x00, // None
-    .bmAttributes       = 1u << 7, // Bus-powered, using USB on Pico
-    .bMaxPower          = 50    // 50*2 = 100mA
+    TUD_HID_REPORT_DESC_KEYBOARD()
 };
 
-tusb_desc_interface_t const desc_interface =
-{
-    .bLength            = sizeof(tusb_desc_interface_t),
-    .bDescriptorType    = TUSB_DESC_INTERFACE,
-    .bInterfaceNumber   = 0x00,
-    .bAlternateSetting  = 0x00, 
-    .bNumEndpoints      = 0x01,
-    .bInterfaceClass    = 0x03, // HID code defined by USB
-    .bInterfaceSubClass = HID_SUBCLASS_NONE,
-    .bInterfaceProtocol = HID_ITF_PROTOCOL_KEYBOARD,
-    .iInterface         = 0x00
-};
+#define EP_NO  0x01
 
-// USB HID descriptor from hid.h
-tusb_hid_descriptor_hid_t const desc_hid_class =
+packed_descriptors_t const descriptors =
 {
-    .bLength            = sizeof(tusb_hid_descriptor_hid_t),
-    .bDescriptorType    = HID_DESC_TYPE_HID,
-    .bcdHID             = 0x0111,   //HID spec 1.11
-    .bCountryCode       = HID_LOCAL_US,
-    .bNumDescriptors    = 0x01,
-    .bReportType  = 0x22,
-    .wReportLength  = 0x00  // I don't know how to compute this value
+    .config = {
+        .bLength            = sizeof(tusb_desc_configuration_t),
+        .bDescriptorType    = TUSB_DESC_CONFIGURATION,
+        .wTotalLength       = sizeof(tusb_desc_configuration_t) +
+                              sizeof(tusb_desc_interface_t) +
+                              sizeof(tusb_desc_endpoint_t) +
+                              sizeof(tusb_hid_descriptor_hid_t),
+        .bNumInterfaces     = 0x01,
+        .bConfigurationValue = 0x01,
+        .iConfiguration     = 0x00, // None
+        .bmAttributes       = 1u << 7, // Bus-powered, using USB on Pico
+        .bMaxPower          = 50    // 50*2 = 100mA
+    },
+    .interface = {
+        .bLength            = sizeof(tusb_desc_interface_t),
+        .bDescriptorType    = TUSB_DESC_INTERFACE,
+        .bInterfaceNumber   = 0x00,
+        .bAlternateSetting  = 0x00, 
+        .bNumEndpoints      = 0x01,
+        .bInterfaceClass    = 0x03, // HID code defined by USB
+        .bInterfaceSubClass = HID_SUBCLASS_NONE,
+        .bInterfaceProtocol = 0x00,
+        .iInterface         = 0x00
+    },
+    .hid = {
+        .bLength            = sizeof(tusb_hid_descriptor_hid_t),
+        .bDescriptorType    = HID_DESC_TYPE_HID,
+        .bcdHID             = 0x0111,   //HID spec 1.11
+        .bCountryCode       = 0x00,
+        .bNumDescriptors    = 0x01,
+        .bReportType  = 0x22,
+        .wReportLength  = sizeof(desc_hid_keyboard_report)
+    },
+    .endpoint = {
+        .bLength = sizeof(tusb_desc_endpoint_t),
+        .bDescriptorType    = TUSB_DESC_ENDPOINT,
+        .bEndpointAddress   = TUSB_DIR_IN_MASK | EP_NO,
+        .bmAttributes       = TUSB_XFER_INTERRUPT,
+        .wMaxPacketSize     = CFG_TUD_HID_EP_BUFSIZE,
+        .bInterval          = 1     // 1ms
+    }
 };
-
