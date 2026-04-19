@@ -7,5 +7,6 @@
 
 void consume_event(key_event_t event);
 
+// Copy current active set to buffer for uploading in HID report
 void capture_active_set(uint8_t hid_buf[MAX_HID_KEYS]);
 

@@ -1,11 +1,12 @@
 // Device Descriptor
 #include "common/tusb_types.h"
+#include "class/hid/hid.h"
 #include "tusb.h"
 #include "tusb_config.h"
 #include "tusb_option.h"
 #include <stdint.h>
 
-// Based on hid_boot_interface example in tinyusb
+// HID descriptor structs from tusb_types.h
 tusb_desc_device_t const desc_device = 
 {
     .bLength            = sizeof(tusb_desc_device_t),
@@ -45,29 +46,20 @@ tusb_desc_interface_t const desc_interface =
     .bAlternateSetting  = 0x00, 
     .bNumEndpoints      = 0x01,
     .bInterfaceClass    = 0x03, // HID code defined by USB
-    .bInterfaceSubClass = 0x00, // not boot device as this is a macropad
-    .bInterfaceProtocol = 0x01, // code for keyboard
+    .bInterfaceSubClass = HID_SUBCLASS_NONE,
+    .bInterfaceProtocol = HID_ITF_PROTOCOL_KEYBOARD,
     .iInterface         = 0x00
 };
 
-typedef struct __attribute__((packed)) {
-    uint8_t     bLength                 ;
-    uint8_t     bDescriptorType         ;
-    uint16_t    bcdHID                  ;
-    uint8_t     bCountryCode            ;
-    uint8_t     bNumDescriptors         ;
-    uint8_t     bReportDescriptorType   ;
-    uint16_t    wDescriptorLength       ;
-} desc_hid_class_t;
-
-desc_hid_class_t const desc_hid_class =
+// USB HID descriptor from hid.h
+tusb_hid_descriptor_hid_t const desc_hid_class =
 {
-    .bLength            = sizeof(desc_hid_class_t),
-    .bDescriptorType    = 0x21, // HID descriptor type assigned by USB
+    .bLength            = sizeof(tusb_hid_descriptor_hid_t),
+    .bDescriptorType    = HID_DESC_TYPE_HID,
     .bcdHID             = 0x0111,   //HID spec 1.11
-    .bCountryCode       = 0x00,
+    .bCountryCode       = HID_LOCAL_US,
     .bNumDescriptors    = 0x01,
-    .bReportDescriptorType  = 0x22,
-    .wDescriptorLength  = 0x00  // I don't know how to compute this value
+    .bReportType  = 0x22,
+    .wReportLength  = 0x00  // I don't know how to compute this value
 };
 
