@@ -13,14 +13,15 @@ add_executable(macropad
     src/keymap.c
     src/usb_hid.c
     src/usb_descriptors.c
-
 )
 
 target_link_libraries(macropad
 	pico_stdlib
+    tinyusb_device
+    tinyusb_board
 )
 target_include_directories(macropad
-    PRIVATE
+    PUBLIC
     config/
     src/
     ${CMAKE_SOURCE_DIR}/pico-sdk/lib/tinyusb/src/

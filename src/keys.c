@@ -70,7 +70,8 @@ bool keys_get_event(key_event_t *event) {
 void keys_scan() {
     // Immediately return if 1ms repeating timer hasn't fired
     if(!timer_fired_flag) return;
-    
+    timer_fired_flag = false;
+
     bool input;
     for(int i=0; i<KEY_COUNT; i++) {
         input = gpio_get(KEY_PINS[i]);
@@ -95,5 +96,4 @@ void keys_scan() {
             }
         }
     }
-
 }
