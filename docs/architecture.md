@@ -49,9 +49,11 @@ macropad/
 │   ├── keymap.c                Keymap engine — physical index to HID keycode lookup
 │   ├── keymap.h
 │   ├── usb_descriptors.c       TinyUSB HID device and report descriptors
-│   └── usb_hid.c               HID report assembly and submission
+│   ├── usb_hid.c               HID report assembly and submission
+│   └── usb_hid.h               
 │
 ├── config/
+│   ├── tusb_options.h
 │   └── keymap_config.h         THE only file edited to change key count, pins, or mapping
 │
 ├── hardware/
@@ -104,8 +106,8 @@ The firmware is structured as four layers. Data flows strictly downward; no laye
 The main loop in `main.c` orchestrates all layers on each iteration:
 
 1. Call `keys_scan()` — reads GPIO state, runs debounce, populates event queue
-2. Call `keymap_resolve()` — consumes events, produces active HID keycode set
-3. Call `usb_hid_send_report()` — assembles and submits HID report
+2. Call `consume_event` — consumes events, produces active HID keycode set
+3. Call `hid_task()` — assembles and submits HID report
 4. Call `tud_task()` — services the TinyUSB stack
 
 No RTOS is used. A tight superloop is appropriate at this complexity level and avoids the overhead and non-determinism of task scheduling.
@@ -151,7 +153,7 @@ The active set is a fixed-size array of up to 6 simultaneous keycodes, matching 
 
 **Mechanism:** TinyUSB (bundled with the Pico SDK) handles USB enumeration, descriptor exchange, and interrupt endpoint management. `usb_descriptors.c` defines the USB device descriptor, HID report descriptor, and string descriptors. `usb_hid.c` calls `tud_hid_keyboard_report()` on each main loop iteration when the active keycode set has changed.
 
-The HID report descriptor declares a standard boot-compatible keyboard. This ensures compatibility with Windows and Linux without any custom driver.
+The HID report descriptor declares a standard keyboard. This ensures compatibility with Windows and Linux without any custom driver.
 
 **`tud_task()`** must be called in the main loop to service TinyUSB's internal state machine.
 
@@ -164,7 +166,6 @@ The HID report descriptor declares a standard boot-compatible keyboard. This ens
 1. `stdio_init_all()` — UART debug output on GP0/GP1 (debug builds only)
 2. `tusb_init()` — initialise TinyUSB
 3. `keys_init()` — configure GPIO pins, enable pull-ups, start debounce timer
-4. `keymap_init()` — initialise active keycode set
 
 **Main loop:** Runs continuously with no blocking delays. All time-sensitive work is driven by the 1 ms timer flag set in the scan ISR.
 
@@ -299,14 +300,14 @@ This produces `macropad.uf2` in the build directory.
 
 ## 10. Development Phases
 
-### Phase 1 — Breadboard prototype (current)
+### Phase 1 — Breadboard prototype (complete)
 
 - 4 keys on breadboard using GP2–GP5
 - Pico powered and communicating over USB
 - Validate key scanner, debounce, and HID report pipeline
 - Success criterion: Windows recognises the device as a keyboard and receives correct HID keycodes for all 4 keys with no spurious events
 
-### Phase 2 — Key count expansion
+### Phase 2 — Key count expansion (current)
 
 - Acquire remaining switches; finalise key count
 - Update `KEY_COUNT`, `KEY_PINS`, and `KEY_MAP` in `keymap_config.h`
