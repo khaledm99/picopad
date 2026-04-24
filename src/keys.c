@@ -30,6 +30,7 @@ void keys_init() {
     for(int i=0; i<KEY_COUNT; i++) {
         gpio_init(KEY_PINS[i]);
         gpio_set_dir(KEY_PINS[i], GPIO_IN);
+        gpio_pull_up(KEY_PINS[i]);
     }
     
     add_repeating_timer_ms(-1, callback, NULL, &timer);
